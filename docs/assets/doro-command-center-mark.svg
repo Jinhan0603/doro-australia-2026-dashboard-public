@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
-  <title id="title">DORO Public Dashboard Mark</title>
-  <desc id="desc">Geometric emblem for the sanitized public dashboard.</desc>
+  <title id="title">DORO 업무판 마크</title>
+  <desc id="desc">공개 가능한 한글 업무판에 사용하는 기하학 마크.</desc>
   <defs>
     <linearGradient id="panel" x1="12" y1="12" x2="84" y2="84" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#0f7b67"/>

@@ -1,226 +1,555 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DORO Australia 2026 Public Dashboard</title>
-  <meta name="description" content="Public-safe visual dashboard for the DORO Australia 2026 trade mission.">
+  <title>DORO 호주 시장개척단 업무판</title>
+  <meta name="description" content="대표가 매일 순서대로 일할 수 있도록 정리한 DORO 호주 시장개척단 한글 업무 운영판">
   <link rel="icon" href="./assets/doro-command-center-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./assets/public-dashboard.css">
+  <link rel="stylesheet" href="./assets/command-center.css">
 </head>
 <body>
   <main class="page">
-    <section class="hero panel">
-      <div class="hero-copy">
-        <div class="eyebrow">Public Dashboard</div>
-        <h1>DORO Australia 2026</h1>
+    <section class="hero">
+      <article class="hero-main panel">
+        <div class="eyebrow">DORO Australia 2026</div>
+        <h1>호주 시장개척단 업무판</h1>
         <p class="subtitle">
-          Read-only visual summary for the trade mission pipeline. This public view uses aggregate metrics only and does not expose account-level targets or internal operating details.
+          이 화면은 대표가 매일 바로 일할 수 있도록 `오늘 할 일`, `다음 행동`, `AGS 검증`, `연락/후속`, `현장 미팅 후보`, `Notion 등록 대기 TASK`를 한글 중심으로 정리한 공개용 업무 지휘판입니다.
         </p>
-      </div>
-      <img class="hero-mark" src="./assets/doro-command-center-mark.svg" alt="DORO dashboard mark" width="88" height="88">
+        <div class="chip-row">
+          <span class="chip">오늘 해야 할 일 먼저 보기</span>
+          <span class="chip">우선 타깃 8개 집중</span>
+          <span class="chip">AGS 검증과 연락 흐름 분리</span>
+          <span class="chip">민감정보 제외한 공개용 요약</span>
+        </div>
+        <div class="action-row">
+          <a class="action-link primary" href="#today-work">오늘 할 일 보기</a>
+          <a class="action-link" href="./data/public_safe_pipeline_ko.csv">공개 파이프라인 CSV</a>
+          <a class="action-link" href="./data/dashboard_summary_ko.csv">공개 요약 CSV</a>
+        </div>
+      </article>
+      <aside class="hero-side panel">
+        <div class="meta-grid">
+          <div class="meta-card">
+            <div class="meta-label">업무 기준일</div>
+            <div class="meta-value" id="reviewDate">2026-04-21</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">우선 타깃</div>
+            <div class="meta-value" id="priorityCount">-</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">후보군</div>
+            <div class="meta-value" id="candidateCount">-</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Notion 등록 대기 TASK</div>
+            <div class="meta-value" id="taskCount">-</div>
+          </div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">공개 범위</div>
+          <div class="meta-note">
+            회사명, 도시, 진행 단계, 다음 행동, 역할 단위 담당자만 표시합니다. 개인 연락처, 비공개 담당자 정보, 세부 영업 메모는 포함하지 않습니다.
+          </div>
+        </div>
+      </aside>
     </section>
 
-    <section class="meta-strip">
-      <article class="meta-card panel">
-        <div class="meta-label">Product Focus</div>
-        <div class="meta-value" id="productName">Loading</div>
-      </article>
-      <article class="meta-card panel">
-        <div class="meta-label">Data Mode</div>
-        <div class="meta-value" id="dataMode">Loading</div>
-      </article>
-      <article class="meta-card panel">
-        <div class="meta-label">Generated</div>
-        <div class="meta-value" id="generatedAt">Loading</div>
-      </article>
+    <section class="section" id="today-work">
+      <div class="section-head">
+        <h2>1. 오늘 할 일</h2>
+        <p>오늘 반드시 끝낼 3개와 바로 실행할 조사, AGS 요청, 연락, 후속</p>
+      </div>
+      <div class="today-grid">
+        <div class="must-grid" id="mustDoGrid"></div>
+        <div class="info-grid">
+          <article class="list-card panel">
+            <h3>오늘 조사할 기업</h3>
+            <ul class="compact-list" id="todayResearchList"></ul>
+          </article>
+          <article class="list-card panel">
+            <h3>오늘 AGS에 보낼 것</h3>
+            <ul class="compact-list" id="todayAgsList"></ul>
+          </article>
+          <article class="list-card panel">
+            <h3>오늘 연락할 기업</h3>
+            <ul class="compact-list" id="todayContactList"></ul>
+          </article>
+          <article class="list-card panel">
+            <h3>오늘 후속해야 할 기업</h3>
+            <ul class="compact-list" id="todayFollowList"></ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="week-plan">
+      <div class="section-head">
+        <h2>2. 이번 주 일정</h2>
+        <p>주간 마감과 Notion 등록 여부를 같이 확인</p>
+      </div>
+      <div class="panel table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>날짜</th>
+              <th>업무명</th>
+              <th>관련 기업</th>
+              <th>담당자</th>
+              <th>마감 상태</th>
+              <th>Notion TASK 생성 여부</th>
+            </tr>
+          </thead>
+          <tbody id="weeklyPlanTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" id="ags-pipeline">
+      <div class="section-head">
+        <h2>3. AGS 검증 파이프라인</h2>
+        <p>조사 완료부터 소개 요청과 보류까지 한 번에 확인</p>
+      </div>
+      <div class="pipeline-grid" id="agsPipelineGrid"></div>
+    </section>
+
+    <section class="section" id="target-cards">
+      <div class="section-head">
+        <h2>4. 우선 타깃 기업 8개</h2>
+        <p>첫 화면에서는 우선 8개만 강조하고 나머지는 후보군으로 분리</p>
+      </div>
+      <div class="target-grid" id="priorityTargetGrid"></div>
+      <div class="section-head">
+        <h2>후보군</h2>
+        <p>우선 8개 외에 계속 추적할 기업</p>
+      </div>
+      <div class="candidate-grid" id="candidateGrid"></div>
+    </section>
+
+    <section class="section" id="contact-followup">
+      <div class="section-head">
+        <h2>5. 연락/후속 관리</h2>
+        <p>메일, 후속, Zoom, 제안 단계로 나누어 확인</p>
+      </div>
+      <div class="contact-grid" id="contactGrid"></div>
+    </section>
+
+    <section class="section" id="onsite-candidates">
+      <div class="section-head">
+        <h2>6. 현장 미팅 후보</h2>
+        <p>Zoom 이후 또는 현장 우선 검토가 필요한 기업</p>
+      </div>
+      <div class="candidate-grid" id="onsiteGrid"></div>
+    </section>
+
+    <section class="section" id="sample-status">
+      <div class="section-head">
+        <h2>7. 샘플/자료 준비 상태</h2>
+        <p>지금 바로 준비가 끝난 것과 아직 막힌 항목</p>
+      </div>
+      <div class="sample-grid" id="sampleGrid"></div>
+    </section>
+
+    <section class="section" id="risk-block">
+      <div class="section-head">
+        <h2>8. 위험/막힌 일</h2>
+        <p>멈춤 원인을 먼저 확인하고 오늘 처리할 것 결정</p>
+      </div>
+      <div class="risk-grid" id="riskGrid"></div>
+    </section>
+
+    <section class="section" id="notion-tasks">
+      <div class="section-head">
+        <h2>9. Notion으로 옮길 TASK</h2>
+        <p>오늘 Notion에 등록하거나 갱신해야 할 작업</p>
+      </div>
+      <div class="panel table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>TASK명</th>
+              <th>관련 기업</th>
+              <th>업무 유형</th>
+              <th>담당자</th>
+              <th>마감일</th>
+              <th>우선순위</th>
+              <th>상태</th>
+              <th>Notion 등록 여부</th>
+            </tr>
+          </thead>
+          <tbody id="notionTaskTable"></tbody>
+        </table>
+      </div>
     </section>
 
     <section class="section">
       <div class="section-head">
-        <h2>Summary</h2>
-        <p>Public-safe top-level metrics only</p>
+        <h2>10. 공개 운영 원칙</h2>
+        <p>이 대시보드가 보여주지 않는 것</p>
       </div>
-      <div class="card-grid" id="summaryCards"></div>
-    </section>
-
-    <section class="section two-col">
-      <article class="panel">
-        <div class="section-head">
-          <h2>City Split</h2>
-          <p>Aggregate count by city</p>
-        </div>
-        <div class="chart-list" id="citySplit"></div>
-      </article>
-      <article class="panel">
-        <div class="section-head">
-          <h2>Buyer Type Split</h2>
-          <p>Aggregate count by buyer type</p>
-        </div>
-        <div class="chart-list" id="buyerTypeSplit"></div>
-      </article>
-    </section>
-
-    <section class="section two-col">
-      <article class="panel">
-        <div class="section-head">
-          <h2>SKU Mix</h2>
-          <p>Proposed offer format mix</p>
-        </div>
-        <div class="chart-list" id="skuSplit"></div>
-      </article>
-      <article class="panel">
-        <div class="section-head">
-          <h2>Priority Mix</h2>
-          <p>Aggregate priority distribution</p>
-        </div>
-        <div class="chart-list" id="prioritySplit"></div>
-      </article>
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <h2>Workflow Snapshot</h2>
-        <p>Status counts only. No account detail is exposed.</p>
+      <div class="panel notice">
+        이 대시보드는 회사명과 단계, 다음 행동, 공개 가능한 수준의 요약만 보여줍니다.
+        개인 연락처, 세부 협상 메모, 비공개 담당자 정보, 상세 연락 원문, 실제 영업 메모는 private repo와 Notion에서만 관리합니다.
       </div>
-      <div class="status-grid" id="workflowSections"></div>
     </section>
 
-    <section class="section panel">
-      <div class="section-head">
-        <h2>Public Data Policy</h2>
-        <p>What is intentionally excluded from this site</p>
-      </div>
-      <ul class="note-list" id="publicNotes"></ul>
-    </section>
+    <div class="footer-note">
+      공개 데이터 파일: <code>docs/data/dashboard_summary_ko.csv</code>, <code>docs/data/public_safe_pipeline_ko.csv</code>
+    </div>
   </main>
 
   <script>
-    const FALLBACK_DATA = {
-      mission: {
-        title: "DORO Australia 2026 Public Dashboard",
-        subtitle: "Public-safe visual overview derived from the private source repository.",
-        product: "DORO AI & Robotics Mission Pack",
-        generated_at_utc: "2026-04-21T00:00:00+00:00",
-        source_policy: "Aggregated metrics only. No account-level targets, owners, deadlines, or outreach instructions are included."
-      },
-      summary_cards: [
-        { label: "Total Accounts In Scope", value: 12, note: "Aggregate count only. Individual targets are excluded from the public dataset." },
-        { label: "Cities In Scope", value: 2, note: "Melbourne, Sydney" },
-        { label: "Buyer Types In Scope", value: 4, note: "Distributor, Institution, Operator, Strategic partner" },
-        { label: "High Priority Accounts", value: 6, note: "Priority count only. Account identities remain private." }
-      ],
-      city_split: [
-        { label: "Sydney", count: 6 },
-        { label: "Melbourne", count: 6 }
-      ],
-      buyer_type_split: [
-        { label: "Operator", count: 5 },
-        { label: "Distributor", count: 4 },
-        { label: "Institution", count: 2 },
-        { label: "Strategic partner", count: 1 }
-      ],
-      sku_split: [
-        { label: "Operator Pack", count: 5 },
-        { label: "Pilot Pack", count: 4 },
-        { label: "Camp Package", count: 3 }
-      ],
-      priority_split: [
-        { label: "high", count: 6 },
-        { label: "medium", count: 6 }
-      ],
-      workflow_snapshot: {
-        validation_status: [{ label: "pending_ags_validation", count: 12 }],
-        zoom_status: [{ label: "not_started", count: 12 }],
-        meeting_status: [{ label: "not_started", count: 12 }],
-        proposal_status: [{ label: "not_started", count: 12 }],
-        sample_status: [{ label: "not_started", count: 12 }]
-      },
-      public_notes: [
-        "Company names, account IDs, and pipeline IDs are excluded.",
-        "Hotel anchors, travel logic, owners, deadlines, and next actions are excluded.",
-        "Links to specific targets and internal validation notes are excluded.",
-        "This dataset is intended for read-only public visualization only."
-      ]
-    };
+    const REVIEW_DATE = "2026-04-21";
 
-    async function loadSummary() {
-      try {
-        const response = await fetch("./data/dashboard_summary.json", { cache: "no-store" });
-        if (!response.ok) {
-          throw new Error("Fetch failed");
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            value += '"';
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === "," && !inQuotes) {
+          row.push(value);
+          value = "";
+        } else if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") {
+            i += 1;
+          }
+          row.push(value);
+          if (row.some((cell) => cell !== "")) {
+            rows.push(row);
+          }
+          row = [];
+          value = "";
+        } else {
+          value += char;
         }
-        const data = await response.json();
-        return { data, mode: "Live JSON" };
-      } catch (error) {
-        return { data: FALLBACK_DATA, mode: "Embedded Fallback" };
       }
+
+      if (value !== "" || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+
+      const [header, ...dataRows] = rows;
+      return dataRows.map((cells) => {
+        const object = {};
+        header.forEach((key, index) => {
+          object[key] = (cells[index] || "").trim();
+        });
+        return object;
+      });
     }
 
-    function renderBars(targetId, rows) {
-      const max = Math.max(...rows.map((row) => row.count), 1);
-      document.getElementById(targetId).innerHTML = rows.map((row) => `
-        <div class="chart-row">
-          <div class="chart-label">${row.label}</div>
-          <div class="chart-track"><div class="chart-fill" style="width:${Math.round((row.count / max) * 100)}%"></div></div>
-          <div class="chart-value">${row.count}</div>
-        </div>
+    async function loadCSV(path) {
+      const response = await fetch(path, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`CSV load failed: ${path}`);
+      }
+      return parseCSV(await response.text());
+    }
+
+    function dateValue(value) {
+      return value ? new Date(`${value}T00:00:00`) : new Date("9999-12-31T00:00:00");
+    }
+
+    function sortByOrder(rows) {
+      return [...rows].sort((a, b) => Number(a["정렬"] || 999) - Number(b["정렬"] || 999));
+    }
+
+    function sortByDate(rows, key = "마감일") {
+      return [...rows].sort((a, b) => dateValue(a[key]) - dateValue(b[key]));
+    }
+
+    function sectionRows(rows, section, subgroup = null) {
+      return rows.filter((row) => row["구분"] === section && (subgroup ? row["소구분"] === subgroup : true));
+    }
+
+    function stageBucket(stage) {
+      if (["0_후보등록", "1_기초조사중", "2_기초조사완료"].includes(stage)) return "AGS 전달 전";
+      if (["3_AGS검증요청"].includes(stage)) return "AGS 전달 완료";
+      if (["4_AGS검증중"].includes(stage)) return "AGS 검증 중";
+      if (["5_적합확인", "6_담당자확인"].includes(stage)) return "적합 확인";
+      if (["7_1차메일발송", "8_후속메일필요"].includes(stage)) return "소개 요청";
+      if (["9_Zoom요청", "10_Zoom예정", "11_Zoom완료"].includes(stage)) return "Zoom 조율";
+      if (["12_현장미팅제안", "13_현장미팅예정", "14_견적또는파일럿제안", "15_수주가능성높음"].includes(stage)) return "현장 미팅 조율";
+      return "보류/탈락";
+    }
+
+    function statusClass(value) {
+      const text = String(value || "");
+      if (["오늘", "준비완료", "필요", "Y", "일정확정"].includes(text)) return "today";
+      if (["주의", "예정", "준비중", "준비필요", "검토필요"].includes(text)) return "warn";
+      if (["보류", "탈락"].includes(text)) return "danger";
+      return "neutral";
+    }
+
+    function pill(label) {
+      return `<span class="pill ${statusClass(label)}">${label}</span>`;
+    }
+
+    function renderCompactList(targetId, rows) {
+      const target = document.getElementById(targetId);
+      if (!rows.length) {
+        target.innerHTML = "<li>현재 표시할 항목이 없습니다.</li>";
+        return;
+      }
+      target.innerHTML = sortByOrder(rows).map((row) => `
+        <li>
+          <strong>${row["항목명"]}</strong><br>
+          ${row["관련기업"] ? `${row["관련기업"]} · ` : ""}${row["설명"]}
+        </li>
       `).join("");
     }
 
-    function renderWorkflow(workflow) {
-      const sections = [
-        ["Validation Status", workflow.validation_status],
-        ["Zoom Status", workflow.zoom_status],
-        ["Meeting Status", workflow.meeting_status],
-        ["Proposal Status", workflow.proposal_status],
-        ["Sample Status", workflow.sample_status]
-      ];
-
-      document.getElementById("workflowSections").innerHTML = sections.map(([title, rows]) => `
-        <article class="panel inset-panel">
-          <h3>${title}</h3>
-          <div class="chart-list">
-            ${rows.map((row) => `
-              <div class="mini-row">
-                <span>${row.label}</span>
-                <strong>${row.count}</strong>
-              </div>
-            `).join("")}
+    function renderMustDo(rows) {
+      const target = document.getElementById("mustDoGrid");
+      target.innerHTML = sortByOrder(rows).map((row) => `
+        <article class="must-card panel">
+          <div class="task-top">
+            <div>
+              <div class="task-company">${row["관련기업"]}</div>
+              <h3>${row["항목명"]}</h3>
+            </div>
+            ${pill(row["상태"])}
+          </div>
+          <div class="next-action"><strong>다음 행동</strong><br>${row["설명"]}</div>
+          <div class="task-meta">
+            <div class="task-line"><span>업무 유형</span><strong>${row["업무유형"]}</strong></div>
+            <div class="task-line"><span>담당자</span><strong>${row["담당자"]}</strong></div>
+            <div class="task-line"><span>마감일</span><strong>${row["마감일"]}</strong></div>
+            <div class="task-line"><span>Notion 등록</span><strong>${row["Notion등록"]}</strong></div>
           </div>
         </article>
       `).join("");
     }
 
-    function renderSummaryCards(cards) {
-      document.getElementById("summaryCards").innerHTML = cards.map((card) => `
-        <article class="summary-card panel">
-          <div class="meta-label">${card.label}</div>
-          <div class="summary-value">${card.value}</div>
-          <p>${card.note}</p>
+    function renderWeeklySchedule(rows) {
+      const target = document.getElementById("weeklyPlanTable");
+      target.innerHTML = sortByDate(rows).map((row) => `
+        <tr>
+          <td>${row["마감일"]}</td>
+          <td><strong>${row["항목명"]}</strong><br>${row["설명"]}</td>
+          <td>${row["관련기업"]}</td>
+          <td>${row["담당자"]}</td>
+          <td>${pill(row["상태"])}</td>
+          <td>${row["Notion등록"]}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderAgsPipeline(pipelineRows) {
+      const buckets = [
+        "AGS 전달 전",
+        "AGS 전달 완료",
+        "AGS 검증 중",
+        "적합 확인",
+        "소개 요청",
+        "Zoom 조율",
+        "현장 미팅 조율",
+        "보류/탈락"
+      ];
+
+      const target = document.getElementById("agsPipelineGrid");
+      target.innerHTML = buckets.map((bucket) => {
+        const rows = pipelineRows.filter((row) => stageBucket(row["현재단계"]) === bucket);
+        const companies = rows.map((row) => row["기업명"]).join(" · ") || "없음";
+        return `
+          <article class="pipeline-card panel">
+            <div class="meta-label">${bucket}</div>
+            <div class="pipeline-count">${rows.length}</div>
+            <div class="pipeline-companies">${companies}</div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderPriorityTargets(rows) {
+      const priorityRows = rows.filter((row) => row["우선타깃여부"] === "Y");
+      const candidateRows = rows.filter((row) => row["후보군여부"] === "Y");
+
+      document.getElementById("priorityTargetGrid").innerHTML = sortByDate(priorityRows).map((row) => `
+        <article class="target-card panel">
+          <div class="target-header">
+            <div class="target-top">
+              <div>
+                <div class="target-city">${row["도시"]}</div>
+                <h3>${row["기업명"]}</h3>
+              </div>
+              ${pill(row["우선순위"])}
+            </div>
+            <div class="target-badges">
+              <span class="badge">${row["기업유형"]}</span>
+              <span class="badge">${row["제안상품"]}</span>
+              <span class="badge">${row["현재단계"]}</span>
+            </div>
+          </div>
+          <div class="next-action"><strong>다음 행동</strong><br>${row["다음행동"]}</div>
+          <div class="detail-list">
+            <div class="detail-line"><span>AGS에 요청할 일</span><strong>${row["AGS에요청할일"]}</strong></div>
+            <div class="detail-line"><span>호텔 접근성</span><strong>${row["호텔접근성"]}</strong></div>
+            <div class="detail-line"><span>제안 상품</span><strong>${row["제안상품설명"]}</strong></div>
+            <div class="detail-line"><span>마감일</span><strong>${row["마감일"]}</strong></div>
+            <div class="detail-line"><span>담당자</span><strong>${row["담당자"]}</strong></div>
+          </div>
+          <p class="meta-note">${row["왜적합한가"]}</p>
+          <p class="meta-note"><strong>주의사항:</strong> ${row["주의사항"]}</p>
+          <p class="meta-note"><a href="${row["공식근거URL"]}" target="_blank" rel="noreferrer">공식 근거 보기</a></p>
+        </article>
+      `).join("");
+
+      document.getElementById("candidateGrid").innerHTML = sortByDate(candidateRows).map((row) => `
+        <article class="candidate-card panel">
+          <div class="task-top">
+            <div>
+              <div class="target-city">${row["도시"]} · ${row["기업유형"]}</div>
+              <h3>${row["기업명"]}</h3>
+            </div>
+            ${pill(row["현재단계"])}
+          </div>
+          <div class="next-action"><strong>다음 행동</strong><br>${row["다음행동"]}</div>
+          <div class="meta-note">${row["왜적합한가"]}</div>
         </article>
       `).join("");
     }
 
-    async function init() {
-      const { data, mode } = await loadSummary();
-      document.getElementById("productName").textContent = data.mission.product;
-      document.getElementById("dataMode").textContent = mode;
-      document.getElementById("generatedAt").textContent = new Date(data.mission.generated_at_utc).toLocaleString("en-AU", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    function contactGroup(rows, title, predicate) {
+      const filtered = rows.filter(predicate);
+      const items = filtered.length
+        ? filtered.map((row) => `
+            <div class="contact-item">
+              <strong>${row["기업명"]}</strong>
+              ${row["현재단계"]}<br>
+              ${row["다음행동"]}<br>
+              담당자: ${row["담당자"]} · 마감일: ${row["마감일"]}
+            </div>
+          `).join("")
+        : `<div class="contact-item">현재 해당 항목이 없습니다.</div>`;
 
-      renderSummaryCards(data.summary_cards);
-      renderBars("citySplit", data.city_split);
-      renderBars("buyerTypeSplit", data.buyer_type_split);
-      renderBars("skuSplit", data.sku_split);
-      renderBars("prioritySplit", data.priority_split);
-      renderWorkflow(data.workflow_snapshot);
-      document.getElementById("publicNotes").innerHTML = data.public_notes.map((note) => `<li>${note}</li>`).join("");
+      return `
+        <article class="contact-card panel">
+          <h3>${title}</h3>
+          <div class="contact-list">${items}</div>
+        </article>
+      `;
+    }
+
+    function renderContactFollowup(rows) {
+      const groups = [
+        ["1차 메일 발송 필요", (row) => row["연락상태"] === "1차메일발송필요"],
+        ["3일 후 후속 필요", (row) => row["연락상태"] === "후속필요"],
+        ["Zoom 요청 필요", (row) => row["연락상태"] === "Zoom요청필요"],
+        ["Zoom 예정", (row) => row["연락상태"] === "Zoom예정" || row["Zoom상태"] === "일정확정"],
+        ["Zoom 완료 후 72시간 내 후속 필요", (row) => row["연락상태"] === "Zoom완료후72시간내후속"],
+        ["견적/파일럿 제안 필요", (row) => row["연락상태"] === "제안필요" || row["견적/파일럿제안상태"] === "제안필요"]
+      ];
+
+      document.getElementById("contactGrid").innerHTML = groups.map(([title, predicate]) => contactGroup(rows, title, predicate)).join("");
+    }
+
+    function renderOnsiteCandidates(rows) {
+      const filtered = rows.filter((row) => ["후보", "제안필요", "조율중"].includes(row["현장미팅상태"]));
+      document.getElementById("onsiteGrid").innerHTML = filtered.length ? filtered.map((row) => `
+        <article class="candidate-card panel">
+          <div class="task-top">
+            <div>
+              <div class="target-city">${row["도시"]} · ${row["기업유형"]}</div>
+              <h3>${row["기업명"]}</h3>
+            </div>
+            ${pill(row["현장미팅상태"])}
+          </div>
+          <div class="next-action"><strong>다음 행동</strong><br>${row["다음행동"]}</div>
+          <div class="detail-list">
+            <div class="detail-line"><span>제안 상품</span><strong>${row["제안상품"]}</strong></div>
+            <div class="detail-line"><span>샘플 필요</span><strong>${row["샘플필요여부"]}</strong></div>
+            <div class="detail-line"><span>마감일</span><strong>${row["마감일"]}</strong></div>
+          </div>
+        </article>
+      `).join("") : `<div class="notice">현재 현장 미팅 후보가 없습니다.</div>`;
+    }
+
+    function renderSimpleCards(targetId, rows) {
+      document.getElementById(targetId).innerHTML = sortByOrder(rows).map((row) => `
+        <article class="${targetId === "riskGrid" ? "risk-card" : "sample-card"} panel">
+          <div class="task-top">
+            <div>
+              <h3>${row["항목명"]}</h3>
+              <div class="task-company">${row["관련기업"] || "공통 항목"}</div>
+            </div>
+            ${pill(row["상태"])}
+          </div>
+          <div class="status-row">
+            <span>담당자</span>
+            <strong>${row["담당자"]}</strong>
+          </div>
+          <div class="status-row">
+            <span>마감일</span>
+            <strong>${row["마감일"]}</strong>
+          </div>
+          <p class="meta-note">${row["설명"]}</p>
+        </article>
+      `).join("");
+    }
+
+    function renderNotionTasks(rows) {
+      document.getElementById("notionTaskTable").innerHTML = sortByOrder(rows).map((row) => `
+        <tr>
+          <td><strong>${row["항목명"]}</strong></td>
+          <td>${row["관련기업"]}</td>
+          <td>${row["업무유형"]}</td>
+          <td>${row["담당자"]}</td>
+          <td>${row["마감일"]}</td>
+          <td>${row["우선순위"]}</td>
+          <td>${pill(row["상태"])}</td>
+          <td>${row["Notion등록"]}</td>
+        </tr>
+      `).join("");
+    }
+
+    async function init() {
+      try {
+        const [summaryRows, pipelineRows] = await Promise.all([
+          loadCSV("./data/dashboard_summary_ko.csv"),
+          loadCSV("./data/public_safe_pipeline_ko.csv")
+        ]);
+
+        document.getElementById("priorityCount").textContent = pipelineRows.filter((row) => row["우선타깃여부"] === "Y").length;
+        document.getElementById("candidateCount").textContent = pipelineRows.filter((row) => row["후보군여부"] === "Y").length;
+        document.getElementById("taskCount").textContent = sectionRows(summaryRows, "NotionTASK").length;
+
+        renderMustDo(sectionRows(summaryRows, "오늘의업무", "반드시할일"));
+        renderCompactList("todayResearchList", sectionRows(summaryRows, "오늘의업무", "오늘조사"));
+        renderCompactList("todayAgsList", sectionRows(summaryRows, "오늘의업무", "오늘AGS"));
+        renderCompactList("todayContactList", sectionRows(summaryRows, "오늘의업무", "오늘연락"));
+        renderCompactList("todayFollowList", sectionRows(summaryRows, "오늘의업무", "오늘후속"));
+        renderWeeklySchedule(sectionRows(summaryRows, "이번주일정"));
+        renderAgsPipeline(pipelineRows);
+        renderPriorityTargets(pipelineRows);
+        renderContactFollowup(pipelineRows);
+        renderOnsiteCandidates(pipelineRows);
+        renderSimpleCards("sampleGrid", sectionRows(summaryRows, "샘플자료준비"));
+        renderSimpleCards("riskGrid", sectionRows(summaryRows, "위험막힌일"));
+        renderNotionTasks(sectionRows(summaryRows, "NotionTASK"));
+      } catch (error) {
+        document.querySelector(".page").innerHTML = `
+          <section class="panel notice">
+            대시보드 데이터를 불러오지 못했습니다.<br>
+            <code>docs/data/dashboard_summary_ko.csv</code> 또는 <code>docs/data/public_safe_pipeline_ko.csv</code> 경로를 확인해 주세요.
+          </section>
+        `;
+      }
     }
 
     init();
