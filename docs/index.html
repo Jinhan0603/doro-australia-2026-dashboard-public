@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DORO Australia 2026 Public Dashboard</title>
+  <meta name="description" content="Public-safe visual dashboard for the DORO Australia 2026 trade mission.">
+  <link rel="icon" href="./assets/doro-command-center-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./assets/public-dashboard.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero panel">
+      <div class="hero-copy">
+        <div class="eyebrow">Public Dashboard</div>
+        <h1>DORO Australia 2026</h1>
+        <p class="subtitle">
+          Read-only visual summary for the trade mission pipeline. This public view uses aggregate metrics only and does not expose account-level targets or internal operating details.
+        </p>
+      </div>
+      <img class="hero-mark" src="./assets/doro-command-center-mark.svg" alt="DORO dashboard mark" width="88" height="88">
+    </section>
+
+    <section class="meta-strip">
+      <article class="meta-card panel">
+        <div class="meta-label">Product Focus</div>
+        <div class="meta-value" id="productName">Loading</div>
+      </article>
+      <article class="meta-card panel">
+        <div class="meta-label">Data Mode</div>
+        <div class="meta-value" id="dataMode">Loading</div>
+      </article>
+      <article class="meta-card panel">
+        <div class="meta-label">Generated</div>
+        <div class="meta-value" id="generatedAt">Loading</div>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Summary</h2>
+        <p>Public-safe top-level metrics only</p>
+      </div>
+      <div class="card-grid" id="summaryCards"></div>
+    </section>
+
+    <section class="section two-col">
+      <article class="panel">
+        <div class="section-head">
+          <h2>City Split</h2>
+          <p>Aggregate count by city</p>
+        </div>
+        <div class="chart-list" id="citySplit"></div>
+      </article>
+      <article class="panel">
+        <div class="section-head">
+          <h2>Buyer Type Split</h2>
+          <p>Aggregate count by buyer type</p>
+        </div>
+        <div class="chart-list" id="buyerTypeSplit"></div>
+      </article>
+    </section>
+
+    <section class="section two-col">
+      <article class="panel">
+        <div class="section-head">
+          <h2>SKU Mix</h2>
+          <p>Proposed offer format mix</p>
+        </div>
+        <div class="chart-list" id="skuSplit"></div>
+      </article>
+      <article class="panel">
+        <div class="section-head">
+          <h2>Priority Mix</h2>
+          <p>Aggregate priority distribution</p>
+        </div>
+        <div class="chart-list" id="prioritySplit"></div>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-head">
+        <h2>Workflow Snapshot</h2>
+        <p>Status counts only. No account detail is exposed.</p>
+      </div>
+      <div class="status-grid" id="workflowSections"></div>
+    </section>
+
+    <section class="section panel">
+      <div class="section-head">
+        <h2>Public Data Policy</h2>
+        <p>What is intentionally excluded from this site</p>
+      </div>
+      <ul class="note-list" id="publicNotes"></ul>
+    </section>
+  </main>
+
+  <script>
+    const FALLBACK_DATA = {
+      mission: {
+        title: "DORO Australia 2026 Public Dashboard",
+        subtitle: "Public-safe visual overview derived from the private source repository.",
+        product: "DORO AI & Robotics Mission Pack",
+        generated_at_utc: "2026-04-21T00:00:00+00:00",
+        source_policy: "Aggregated metrics only. No account-level targets, owners, deadlines, or outreach instructions are included."
+      },
+      summary_cards: [
+        { label: "Total Accounts In Scope", value: 12, note: "Aggregate count only. Individual targets are excluded from the public dataset." },
+        { label: "Cities In Scope", value: 2, note: "Melbourne, Sydney" },
+        { label: "Buyer Types In Scope", value: 4, note: "Distributor, Institution, Operator, Strategic partner" },
+        { label: "High Priority Accounts", value: 6, note: "Priority count only. Account identities remain private." }
+      ],
+      city_split: [
+        { label: "Sydney", count: 6 },
+        { label: "Melbourne", count: 6 }
+      ],
+      buyer_type_split: [
+        { label: "Operator", count: 5 },
+        { label: "Distributor", count: 4 },
+        { label: "Institution", count: 2 },
+        { label: "Strategic partner", count: 1 }
+      ],
+      sku_split: [
+        { label: "Operator Pack", count: 5 },
+        { label: "Pilot Pack", count: 4 },
+        { label: "Camp Package", count: 3 }
+      ],
+      priority_split: [
+        { label: "high", count: 6 },
+        { label: "medium", count: 6 }
+      ],
+      workflow_snapshot: {
+        validation_status: [{ label: "pending_ags_validation", count: 12 }],
+        zoom_status: [{ label: "not_started", count: 12 }],
+        meeting_status: [{ label: "not_started", count: 12 }],
+        proposal_status: [{ label: "not_started", count: 12 }],
+        sample_status: [{ label: "not_started", count: 12 }]
+      },
+      public_notes: [
+        "Company names, account IDs, and pipeline IDs are excluded.",
+        "Hotel anchors, travel logic, owners, deadlines, and next actions are excluded.",
+        "Links to specific targets and internal validation notes are excluded.",
+        "This dataset is intended for read-only public visualization only."
+      ]
+    };
+
+    async function loadSummary() {
+      try {
+        const response = await fetch("./data/dashboard_summary.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Fetch failed");
+        }
+        const data = await response.json();
+        return { data, mode: "Live JSON" };
+      } catch (error) {
+        return { data: FALLBACK_DATA, mode: "Embedded Fallback" };
+      }
+    }
+
+    function renderBars(targetId, rows) {
+      const max = Math.max(...rows.map((row) => row.count), 1);
+      document.getElementById(targetId).innerHTML = rows.map((row) => `
+        <div class="chart-row">
+          <div class="chart-label">${row.label}</div>
+          <div class="chart-track"><div class="chart-fill" style="width:${Math.round((row.count / max) * 100)}%"></div></div>
+          <div class="chart-value">${row.count}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderWorkflow(workflow) {
+      const sections = [
+        ["Validation Status", workflow.validation_status],
+        ["Zoom Status", workflow.zoom_status],
+        ["Meeting Status", workflow.meeting_status],
+        ["Proposal Status", workflow.proposal_status],
+        ["Sample Status", workflow.sample_status]
+      ];
+
+      document.getElementById("workflowSections").innerHTML = sections.map(([title, rows]) => `
+        <article class="panel inset-panel">
+          <h3>${title}</h3>
+          <div class="chart-list">
+            ${rows.map((row) => `
+              <div class="mini-row">
+                <span>${row.label}</span>
+                <strong>${row.count}</strong>
+              </div>
+            `).join("")}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function renderSummaryCards(cards) {
+      document.getElementById("summaryCards").innerHTML = cards.map((card) => `
+        <article class="summary-card panel">
+          <div class="meta-label">${card.label}</div>
+          <div class="summary-value">${card.value}</div>
+          <p>${card.note}</p>
+        </article>
+      `).join("");
+    }
+
+    async function init() {
+      const { data, mode } = await loadSummary();
+      document.getElementById("productName").textContent = data.mission.product;
+      document.getElementById("dataMode").textContent = mode;
+      document.getElementById("generatedAt").textContent = new Date(data.mission.generated_at_utc).toLocaleString("en-AU", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      renderSummaryCards(data.summary_cards);
+      renderBars("citySplit", data.city_split);
+      renderBars("buyerTypeSplit", data.buyer_type_split);
+      renderBars("skuSplit", data.sku_split);
+      renderBars("prioritySplit", data.priority_split);
+      renderWorkflow(data.workflow_snapshot);
+      document.getElementById("publicNotes").innerHTML = data.public_notes.map((note) => `<li>${note}</li>`).join("");
+    }
+
+    init();
+  </script>
+</body>
+</html>
